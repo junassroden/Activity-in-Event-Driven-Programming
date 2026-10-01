@@ -8,6 +8,8 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [courseFilter, setCourseFilter] = useState("All Courses");
   const [yearFilter, setYearFilter] = useState("All Year Levels");
+  const [activeView, setActiveView] = useState("dashboard");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingEnrollment, setEditingEnrollment] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -82,6 +84,8 @@ function App() {
 
   const openAddForm = () => {
     setEditingEnrollment(null);
+    setActiveView("students");
+    setMobileMenuOpen(false);
     setShowForm(true);
   };
 
@@ -118,23 +122,53 @@ function App() {
             </span>
           </a>
 
-          <nav className="desktop-nav">
-            <a href="#" className="nav-link">
+          <nav
+            className={`desktop-nav ${mobileMenuOpen ? "mobile-open" : ""}`}
+            id="main-navigation"
+            aria-label="Main navigation"
+          >
+            <button
+              type="button"
+              className={`nav-link ${activeView === "dashboard" ? "active" : ""}`}
+              aria-current={activeView === "dashboard" ? "page" : undefined}
+              onClick={() => {
+                setActiveView("dashboard");
+                setMobileMenuOpen(false);
+              }}
+            >
               Dashboard
-            </a>
+            </button>
 
-            <a href="#enrollments" className="nav-link active">
-              Enrollments
-            </a>
-
-            <a href="#courses" className="nav-link">
-              Courses
-            </a>
-
-            <a href="#students" className="nav-link">
+            <button
+              type="button"
+              className={`nav-link ${activeView === "students" ? "active" : ""}`}
+              aria-current={activeView === "students" ? "page" : undefined}
+              onClick={() => {
+                setActiveView("students");
+                setMobileMenuOpen(false);
+              }}
+            >
               Students
-            </a>
+            </button>
+
+            <button
+              type="button"
+              className={`nav-link nav-action ${showForm && !editingEnrollment ? "active" : ""}`}
+              onClick={openAddForm}
+            >
+              Add Student
+            </button>
           </nav>
+
+          <button
+            type="button"
+            className="mobile-menu-toggle"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="main-navigation"
+            onClick={() => setMobileMenuOpen((open) => !open)}
+          >
+            {mobileMenuOpen ? "Close" : "Menu"}
+          </button>
 
           <div className="account-area">
             <div className="account-avatar">
@@ -161,14 +195,15 @@ function App() {
         <section className="welcome-section">
           <div>
             <p className="eyebrow">
-              STUDENT MANAGEMENT
+              {activeView === "dashboard" ? "STUDENT MANAGEMENT" : "STUDENT RECORDS"}
             </p>
 
-            <h1>Good morning, Jhonas</h1>
+            <h1>{activeView === "dashboard" ? "Good morning, Jhonas" : "Students"}</h1>
 
             <p className="welcome-text">
-              Manage course enrollments and student records
-              from one place.
+              {activeView === "dashboard"
+                ? "Manage course enrollments and student records from one place."
+                : "Search, review, and manage student enrollment records."}
             </p>
           </div>
 
@@ -178,11 +213,11 @@ function App() {
             onClick={openAddForm}
           >
             <span>+</span>
-            New Enrollment
+            {activeView === "dashboard" ? "New Enrollment" : "Add Student"}
           </button>
         </section>
 
-        <section className="stats-grid">
+        {activeView === "dashboard" && <section className="stats-grid">
           <div className="stat-card">
             <div>
               <span className="stat-label">
@@ -240,15 +275,15 @@ function App() {
           <div className="stat-card">
             <div>
               <span className="stat-label">
-                Visible Records
+                Year Levels
               </span>
 
               <strong>
-                {filteredEnrollments.length}
+                {yearLevels.length}
               </strong>
 
               <small>
-                Based on current filters
+                Levels represented
               </small>
             </div>
 
@@ -256,9 +291,9 @@ function App() {
               VI
             </div>
           </div>
-        </section>
+        </section>}
 
-        <section
+        {activeView === "students" && <section
           className="enrollment-section"
           id="enrollments"
         >
@@ -268,7 +303,7 @@ function App() {
                 ENROLLMENT MANAGEMENT
               </p>
 
-              <h2>Student Enrollments</h2>
+              <h2>Student Directory</h2>
 
               <p>
                 View, search, and manage student course
@@ -346,7 +381,7 @@ function App() {
             onDeleteEnrollment={setDeleteTarget}
             onEditEnrollment={openEditForm}
           />
-        </section>
+        </section>}
       </main>
 
       <footer className="footer">
