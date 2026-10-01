@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "studentName": "Juan Dela Cruz",
+    "course": "Bachelor of Science in Information Technology",
+    "yearLevel": "3rd Year",
+    "email": "juan@example.com"
+  },
+  {
+    "id": 2,
+    "studentName": "Maria Santos",
+    "course": "Bachelor of Science in Computer Science",
+    "yearLevel": "2nd Year",
+    "email": "maria@example.com"
+  },
+  {
+    "id": 3,
+    "studentName": "Carlos Reyes",
+    "course": "Bachelor of Science in Information Technology",
+    "yearLevel": "1st Year",
+    "email": "carlos@example.com"
+  }
+]

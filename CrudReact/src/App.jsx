@@ -1,122 +1,421 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useMemo, useState } from "react";
+import EnrollmentForm from "./components/EnrollmentForm";
+import EnrollmentList from "./components/EnrollmentList";
+import initialEnrollments from "./data/enrollments.json";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [enrollments, setEnrollments] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [courseFilter, setCourseFilter] = useState("All Courses");
+  const [yearFilter, setYearFilter] = useState("All Year Levels");
+  const [showForm, setShowForm] = useState(false);
+  const [editingEnrollment, setEditingEnrollment] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  useEffect(() => {
+    setEnrollments(initialEnrollments);
+  }, []);
+
+  const courses = useMemo(() => {
+    return [...new Set(enrollments.map((item) => item.course))];
+  }, [enrollments]);
+
+  const yearLevels = useMemo(() => {
+    return [...new Set(enrollments.map((item) => item.yearLevel))];
+  }, [enrollments]);
+
+  const filteredEnrollments = useMemo(() => {
+    const search = searchTerm.toLowerCase().trim();
+
+    return enrollments.filter((enrollment) => {
+      const matchesSearch =
+        enrollment.studentName.toLowerCase().includes(search) ||
+        enrollment.course.toLowerCase().includes(search) ||
+        enrollment.email.toLowerCase().includes(search);
+
+      const matchesCourse =
+        courseFilter === "All Courses" ||
+        enrollment.course === courseFilter;
+
+      const matchesYear =
+        yearFilter === "All Year Levels" ||
+        enrollment.yearLevel === yearFilter;
+
+      return matchesSearch && matchesCourse && matchesYear;
+    });
+  }, [enrollments, searchTerm, courseFilter, yearFilter]);
+
+  const addEnrollment = (newEnrollment) => {
+    const enrollment = {
+      ...newEnrollment,
+      id: Date.now()
+    };
+
+    setEnrollments((current) => [...current, enrollment]);
+    setShowForm(false);
+  };
+
+  const updateEnrollment = (updatedEnrollment) => {
+    setEnrollments((current) =>
+      current.map((enrollment) =>
+        enrollment.id === updatedEnrollment.id
+          ? updatedEnrollment
+          : enrollment
+      )
+    );
+
+    setEditingEnrollment(null);
+    setShowForm(false);
+  };
+
+  const deleteEnrollment = () => {
+    if (!deleteTarget) return;
+
+    setEnrollments((current) =>
+      current.filter(
+        (enrollment) => enrollment.id !== deleteTarget.id
+      )
+    );
+
+    setDeleteTarget(null);
+  };
+
+  const openAddForm = () => {
+    setEditingEnrollment(null);
+    setShowForm(true);
+  };
+
+  const openEditForm = (enrollment) => {
+    setEditingEnrollment(enrollment);
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
+    setShowForm(false);
+    setEditingEnrollment(null);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setCourseFilter("All Courses");
+    setYearFilter("All Year Levels");
+  };
+
+  const hasFilters =
+    searchTerm ||
+    courseFilter !== "All Courses" ||
+    yearFilter !== "All Year Levels";
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="app">
+      <header className="navbar">
+        <div className="navbar-inner">
+          <a className="brand" href="#">
+            <span className="brand-mark">C</span>
+
+            <span className="brand-name">
+              CourseFlow
+            </span>
+          </a>
+
+          <nav className="desktop-nav">
+            <a href="#" className="nav-link">
+              Dashboard
+            </a>
+
+            <a href="#enrollments" className="nav-link active">
+              Enrollments
+            </a>
+
+            <a href="#courses" className="nav-link">
+              Courses
+            </a>
+
+            <a href="#students" className="nav-link">
+              Students
+            </a>
+          </nav>
+
+          <div className="account-area">
+            <div className="account-avatar">
+              J
+            </div>
+
+            <div className="account-info">
+              <strong>Jhonas</strong>
+              <span>Administrator</span>
+            </div>
+
+            <button
+              type="button"
+              className="account-arrow"
+              aria-label="Account menu"
+            >
+              ▾
+            </button>
+          </div>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+      </header>
+
+      <main className="main-container">
+        <section className="welcome-section">
+          <div>
+            <p className="eyebrow">
+              STUDENT MANAGEMENT
+            </p>
+
+            <h1>Good morning, Jhonas</h1>
+
+            <p className="welcome-text">
+              Manage course enrollments and student records
+              from one place.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className="new-enrollment-button"
+            onClick={openAddForm}
+          >
+            <span>+</span>
+            New Enrollment
+          </button>
+        </section>
+
+        <section className="stats-grid">
+          <div className="stat-card">
+            <div>
+              <span className="stat-label">
+                Total Enrollments
+              </span>
+
+              <strong>{enrollments.length}</strong>
+
+              <small>
+                Student enrollment records
+              </small>
+            </div>
+
+            <div className="stat-icon">
+              EN
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div>
+              <span className="stat-label">
+                Students
+              </span>
+
+              <strong>{enrollments.length}</strong>
+
+              <small>
+                Active student records
+              </small>
+            </div>
+
+            <div className="stat-icon">
+              ST
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div>
+              <span className="stat-label">
+                Courses
+              </span>
+
+              <strong>{courses.length}</strong>
+
+              <small>
+                Programs represented
+              </small>
+            </div>
+
+            <div className="stat-icon">
+              CR
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div>
+              <span className="stat-label">
+                Visible Records
+              </span>
+
+              <strong>
+                {filteredEnrollments.length}
+              </strong>
+
+              <small>
+                Based on current filters
+              </small>
+            </div>
+
+            <div className="stat-icon">
+              VI
+            </div>
+          </div>
+        </section>
+
+        <section
+          className="enrollment-section"
+          id="enrollments"
         >
-          Count is {count}
-        </button>
-      </section>
+          <div className="section-header">
+            <div>
+              <p className="eyebrow">
+                ENROLLMENT MANAGEMENT
+              </p>
 
-      <div className="ticks"></div>
+              <h2>Student Enrollments</h2>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+              <p>
+                View, search, and manage student course
+                enrollment records.
+              </p>
+            </div>
+
+            <span className="record-indicator">
+              {filteredEnrollments.length}{" "}
+              {filteredEnrollments.length === 1
+                ? "record"
+                : "records"}
+            </span>
+          </div>
+
+          <div className="filters">
+            <div className="search-box">
+              <span className="search-icon">
+                ⌕
+              </span>
+
+              <input
+                type="search"
+                placeholder="Search students, courses, or email"
+                value={searchTerm}
+                onChange={(e) =>
+                  setSearchTerm(e.target.value)
+                }
+              />
+            </div>
+
+            <select
+              value={courseFilter}
+              onChange={(e) =>
+                setCourseFilter(e.target.value)
+              }
+            >
+              <option>All Courses</option>
+
+              {courses.map((course) => (
+                <option key={course} value={course}>
+                  {course}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={yearFilter}
+              onChange={(e) =>
+                setYearFilter(e.target.value)
+              }
+            >
+              <option>All Year Levels</option>
+
+              {yearLevels.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+
+            {hasFilters && (
+              <button
+                type="button"
+                className="clear-button"
+                onClick={clearFilters}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          <EnrollmentList
+            enrollments={filteredEnrollments}
+            onDeleteEnrollment={setDeleteTarget}
+            onEditEnrollment={openEditForm}
+          />
+        </section>
+      </main>
+
+      <footer className="footer">
+        <div>
+          <strong>CourseFlow</strong>
+          <span>
+            Student Enrollment Management System
+          </span>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        <span>
+          Academic Services
+        </span>
+      </footer>
+
+      {showForm && (
+        <EnrollmentForm
+          onAddEnrollment={addEnrollment}
+          editingEnrollment={editingEnrollment}
+          onUpdateEnrollment={updateEnrollment}
+          onCancelEdit={closeForm}
+        />
+      )}
+
+      {deleteTarget && (
+        <div
+          className="modal-backdrop"
+          onMouseDown={() => setDeleteTarget(null)}
+        >
+          <div
+            className="delete-modal"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div className="delete-icon">
+              !
+            </div>
+
+            <h2>Delete enrollment?</h2>
+
+            <p>
+              You are about to remove{" "}
+              <strong>
+                {deleteTarget.studentName}
+              </strong>{" "}
+              from the enrollment records.
+            </p>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="cancel-button"
+                onClick={() => setDeleteTarget(null)}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="confirm-delete-button"
+                onClick={deleteEnrollment}
+              >
+                Delete Enrollment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
